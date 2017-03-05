@@ -115,7 +115,7 @@ class HouseInfoHandler(BaseHandler):
 
     def get(self):
         session = Session(self)
-        user_id = session.data.get("user_id", "")
+        user_id = session.data.get("user_id", "-1")
         house_id = self.get_argument("house_id")
 
         if not house_id:

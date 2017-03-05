@@ -20,6 +20,7 @@ class Application(tornado.web.Application):
 
 def main():
     options.log_file_prefix = config.log_path
+    options.parse_command_line()
     options.logging = config.log_level
     tornado.options.parse_command_line()
     app = Application(

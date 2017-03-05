@@ -1,7 +1,7 @@
 var cur_page = 1;
 var next_page = 1;
 var total_page = 1;
-var house_data_querying=true;
+var house_data_querying = true;
 
 function decodeQuery(){
     var search = decodeURI(document.location.search);
@@ -24,7 +24,7 @@ function updateFilterDateDisplay() {
     }
 }
 
-function updateHouseData(action="append") {
+function updateHouseData(action){
     var areaId = $(".filter-area>li.active").attr("area-id");
     if (undefined == areaId) areaId = "";
     var startDate = $("#start-date").val();
@@ -37,25 +37,22 @@ function updateHouseData(action="append") {
         sk:sortKey,
         p:next_page
     };
-
-    $.get("/api/house/list2", params, function (data) {
+    $.get("/api/house/list2", params, function(data){
         house_data_querying = false;
         if ("0" == data.errcode) {
             if (0 == data.total_page) {
-                $(".house-list").html("暂时没有符合您查询的房屋信息");
+                $(".house-list").html("暂时没有符合您查询的房屋信息。");
             } else {
                 total_page = data.total_page;
-                    if ("append" == action) {
-                        cur_page = next_page;
-                        $(".house-list").append(template("house-list-tmpl", {houses:data.data}));
-                    } else if ("renew" == action) {
-                        cur_page = 1;
-                        $(".house-list").html(template("house-list-tmpl", {houses:data.data}));
+                if ("renew" == action) {
+                    cur_page = 1;
+                    $(".house-list").html(template("house-list-tmpl", {houses:data.data}));
+                } else {
+                    cur_page = next_page;
+                    $(".house-list").append(template("house-list-tmpl", {houses:data.data}));
                 }
             }
-
         }
-
     })
 }
 
@@ -63,49 +60,50 @@ $(document).ready(function(){
     var queryData = decodeQuery();
     var startDate = queryData["sd"];
     var endDate = queryData["ed"];
-    $("#start-date").val(startDate); 
-    $("#end-date").val(endDate); 
+    $("#start-date").val(startDate);
+    $("#end-date").val(endDate);
     updateFilterDateDisplay();
     var areaName = queryData["aname"];
     if (!areaName) areaName = "位置区域";
     $(".filter-title-bar>.filter-title").eq(1).children("span").eq(0).html(areaName);
 
-    $.get("/api/house/area", function (data) {
-        if("0" == data.errcode) {
+    $.get("/api/house/area", function(data){
+        if ("0" == data.errcode) {
             var areaId = queryData["aid"];
             if (areaId) {
-                for (var i = 0; i < data.data.length; i++) {
+                for (var i=0; i<data.data.length; i++) {
                     areaId = parseInt(areaId);
                     if (data.data[i].area_id == areaId) {
                         $(".filter-area").append('<li area-id="'+ data.data[i].area_id+'" class="active">'+ data.data[i].name+'</li>');
-
                     } else {
-                        $(".filter-area").append('<li area-id="' + data.data[i].area_id + '">' + data.data[i].name + '</li>');
+                        $(".filter-area").append('<li area-id="'+ data.data[i].area_id+'">'+ data.data[i].name+'</li>');
                     }
-                    }
-                } else {
-                for (var i = 0; i < data.data.length; i++) {
-                    $(".filter-area").append('<li area-id="' + data.data[i].area_id + '">' + data.data[i].name + '</li>');
+                }
+            } else {
+                for (var i=0; i<data.data.length; i++) {
+                    $(".filter-area").append('<li area-id="'+ data.data[i].area_id+'">'+ data.data[i].name+'</li>');
                 }
             }
-                    updateHouseData("renew");
-                    var windowHeight = $(window).height()
-                    window.onscroll=function () {
-                        var b = document.documentElement.scrollTop == 0? document.body.scrollTop : document.documentElement.scrollTop;
-                        var c = document.documentElement.scrollTop == 0? document.body.scrollHeight : document.documentElement.scrollHeight;
-                        if (c-b < windowHeight+50) {
-                            if (!house_data_querying) {
-                                house_data_querying = true;
-                                if (cur_page < total_page) {
-                                    next_page = cur_page + 1;
-                                    updateHouseData();
+            updateHouseData("renew");
+            var windowHeight = $(window).height()
+            window.onscroll=function(){
+                // var a = document.documentElement.scrollTop==0? document.body.clientHeight : document.documentElement.clientHeight;
+                var b = document.documentElement.scrollTop==0? document.body.scrollTop : document.documentElement.scrollTop;
+                var c = document.documentElement.scrollTop==0? document.body.scrollHeight : document.documentElement.scrollHeight;
+                if(c-b<windowHeight+50){
+                    if (!house_data_querying) {
+                        house_data_querying = true;
+                        if(cur_page < total_page) {
+                            next_page = cur_page + 1;
+                            updateHouseData();
                         }
                     }
                 }
             }
         }
-
     });
+
+
     $(".input-daterange").datepicker({
         format: "yyyy-mm-dd",
         startDate: "today",
@@ -125,13 +123,20 @@ $(document).ready(function(){
             $filterItem.eq(index).removeClass('active');
             $(".display-mask").hide();
             updateFilterDateDisplay();
+            cur_page = 1;
+            next_page = 1;
+            total_page = 1;
+            updateHouseData("renew");
         }
     });
     $(".display-mask").on("click", function(e) {
         $(this).hide();
         $filterItem.removeClass('active');
         updateFilterDateDisplay();
-
+        cur_page = 1;
+        next_page = 1;
+        total_page = 1;
+        updateHouseData("renew");
     });
     $(".filter-item-bar>.filter-area").on("click", "li", function(e) {
         if (!$(this).hasClass("active")) {
